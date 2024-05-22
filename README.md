@@ -1,126 +1,214 @@
-# boughani_yacine_tello
-projet sur les drones (Tello edu)
-Ce projet propose une solution complète pour le contrôle d'une flottille de drones Tello EDU à partir d'un PC de controle, en asservissant en position grace a un retour sur leur position avec des caméras Optitrack . L’implémentationt du  programme est basé sur le middleware ROS2 et vise à fournir une interface pratique et efficace pour le contrôle des drones en temps réel. Donc dans cette partie pratique dans un prmier temps nous allons passer par plusieur configuration et etape afin de pouvoir réaliser notre lancement .
+# README.MD
 
-Pré requis et etapes a suivre :
+> Comment utiliser le programme, présentation de son fonctionnement et de son architecture
+> 
 
-L'utilisation de ce programme nécessite l'installation et la configuration de ROS2 Foxy sur un système Ubuntu 20.04.Avoir une station optitrack pour controle et visionage des drones ,un pc de controle ,et un pc optitrack.et a l’aide de python et les definition de chaque fonction on pourais mieux comprendre chaque commande et  a l’aide du programme tornado on pouraient avoir aleatoirement des position . Une fois ces prérequis remplis et compris le programme peut être utilisé selon les étapes suivantes :
--Mise en place du réseau
--Configuration d’Optitrack
--Configuration et exécution du package ros2-mocap_optitrack
--Configuration du driver / package swarm
--Configuration de la démo exécutée par les drones
--Compilation et exécution du package
+L’objectif de ce projet est de contrôler une flottille de drone Tello EDU depuis un PC en les asservissant en position grâce à un retour sur leur position avec des camera Optitrack. L’ensemble du programme sera implémenté sur middleware ROS2.
 
-Mise en place du réseau :
-Les PC Optitrack et de contrôle doivent être connectés au même réseau que les drones, de préférence via une connexion filaire. Les drones doivent être configurés sur ce réseau, ce qui peut être fait en utilisant le SDK 3.0 Tello et en envoyant des paquets UDP via des logiciels tels que PacketSender.
+Pour utiliser ce programme il faut [installer](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html) et [configurer](https://docs.ros.org/en/foxy/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html) ROS2 Foxy sur Ubuntu 20.04.
 
-Utilisation de packetSender :
-Pour ce qui est de l’utilisation de ce logiciel avant le commencement faudrait etre connecter au reseau du drone , Apres ca dans un premier temps dans l’encart «ASCII», saisissez le message que vous souhaitez envoyer dans notre cas en a 3message a envoye premierement commande pour le commander ensuite battery pour verifier l’etat de  la batterie et en fin configuration ap c’est ce qui va nous permettre de configurer le drone au routeur dans notre cas il sera relier au reseau speed wiffi , Ensuite entrez l’adresse IP et le port du serveur de destination. A la fin cliquez sur le bouton «envoyez» pour transmettre le paquet.
-Pour ce qui est des fonctionnalités :
-Protocoles supportés : TCP, UDP, SSL.
-Génération de requetes HTTP/HTTPS.
-Affichage de l’état et des ports pour les serveurs UDP, TCP et SSL.
-Réponses facultatives peuvent etre envoyées.
+## Utilisation :
 
+### Mise en place du réseau :
 
+Il faut faire en sorte de placer le PC Optitrack et le PC de contrôle, de préférence par connexion filaire, sur le même réseau que les drones. Pour configurer les drones sur un nouveau réseau vous pouvez vous référer au [SDK 3.0 Tello](https://dl.djicdn.com/downloads/RoboMaster+TT/Tello_SDK_3.0_User_Guide_en.pdf) et envoyer les paquets UDP via le logiciel PacketSender par exemple. 
 
-Configuration d’Optitrack :
-Avant d'utiliser le programme, Optitrack doit être lancé. Cela implique d'allumer les caméras Optitrack, de lancer le logiciel Motive sur le PC Optitrack, et de le configurer correctement . Avant de lancer on doit s’assurer que notre pc optitrack est bien connecter au bon réseau et qu’il a la bonne adresse IP car tout les appareil devraient etre connecter sure la méme adress. Ensuite en effectue plusieur configuration :
-Configuration systemes :
-Calibration du volume on prepare notre espace de capture (volume) en placant les caméras OptiTrack autour de la zone ou vous souhaitez suivre les mouvements.
-Configuration des caméras :
-Placement des caméras on positionne les caméras de maniére a couvrir toute la zone de capture.apres en effectue une calibration des caméras on utilisera le logiciel motive pour calibrer chaque caméra en fonction de son emplacement.
-Placement des marqueurs :
-On attache des pastilles ou marqueurs réfléchissants aux objets que vous souhaitez suivre. Ces marqueurs sont détectés par les caméras OptiTrack.pour ce qui du placement des marqueurs faut les mettre de facon qu’il soit visbles au moins par deux caméras simultanément.
-Capture de mouvement :
-On lance le logiciel Motive , On crée un projet et on  configure les paramétres de capture (fréquence d’image , résolution ,ect).ensuite en calibre le volume en utilisant les marqueurs de calibration. On commence la capture de mouvement en enregistrant les données des marqueurs. 
-Analyse des données :
-Apres la capture ,On analyse les données pour obtenir des information sur les mouvements des drones, Ensuite exportez les données au format souhaité (CSV,BVH,etc.) pour une utilisation ultérieure.
+### Configuration d’Optitrack :
 
-On fait une configuration de motive et du package de mocap : 
--Configuration motive :
+Pour utiliser le programme il faut d’abord lancer Optitrack. Il faut donc allumer les caméra Optitrack, lancer le logiciel Motive sur le PC Optitrack, correctement le configurer en suivant les indication de la doc Optitrack présente sur ce dépôt git. Attention à bien mettre “Z up” sur Motive.
 
-Ensuite on va sur propreities et on verifie les propriété du drone et il faut s’assurer que le streaming ID de chaque drones doit etre different allant de 1 a 12 et on devrait toujours avoir un drone qui prend l’adresse 1 :
-Pour ce qui est des données de chaque drones ils seront envoyé  vers le PC de controle avec un protocole NatNet. Et pour ce qui est de la configuration des rigid body on effectura les modification sur notre Table.csv .
+Il faut ensuite ajouter les créer les rigid bodies de chaque drone en plaçant l’avant du drone vers **x positif** d’Optitrack (afin que les axe du drone et d’Optitrack correspondent)
 
+Il faut aussi configurer les rigid body de sorte à ce que leur streaming id correspondent à l’ID entré dans
 
-Configuration et exécution du package ros2-mocap_optitrack :
-Ce package permet de recevoir les données de positionnement des drones à partir d'Optitrack. Il est nécessaire de suivre les instructions et la configuration suivant afin d’exécuter le package ros2-mocap_optitrack :
-Sourcer ROS2 :
-Avant de commencer , on s’assure d’abord d’avoir bien sourcer ROS2 dans chaque terminal qu’on vas utiliser
-             Source /opt/ros/foxy/setup.bash
-Lancer le script build.sh :
-A la racine de votre workspace ROS2, executez le script build.sh
-             Bash build.sh
-On laisse ce terminal en cours d’exécution
+```python
+ros2_ws/srx/swarm/swarm/config/Table.csv
+```
 
+> 🛑 Attention : le package ros2-mocap_optitrack a besoin qu’au moins un rigid body ait le **streaming id 1** donc soit toujours utiliser le drone 1, soit entrer un rigid body 1 qui n’existe pas sur Motive, soit adapter le fichier Table.csv
+> 
 
+### Configuration et exécution du package ros2-mocap_optitrack :
 
-Vérification du fonctionnement :
-Dans un nouveau terminal ou ROS2 est sourcé, on lance la commande suivante pour verifier si les position rigid bodies sont correctement envoyées
-                       ros2 topic echo /mocap_rigid_bodies
-Si on vois pas de psitions de rigid body, on vérifie toute la configuration et relance le processus (cela peut échouer en cas de latence sur le réseau).
-Gestion des plantages :
-Sur certains PC, le programme peut planter environ toutes les 10 minutes, surtout lorsque des modification sont apportées aux rigid bodies dans Motive.Dans ce cas en utilise a nouveau le script build.sh ou bien en peut utiliser aussi
-                       colcon build
+A nouveau se référer à la doc Optitrack présente sur ce dépôt git.
 
-Configuration du driver / package swarm :
-Pour configurer le packageswarm et le driver associé:
-Table d’adresses IP des drones :
-On dois d’abord s’assurer que la table d’adresses IP des drones est correcte dans le fichier
-                         trello_swarm/ros2_ws/src/swarm/swarm/config/Table.csv  
-Ce fichier contient les adresses IP des drones que vous souhaitez controler.
-Configuration du driver  driver_swarm.py :
-Ouvrire le fichier driver_swarm.py situé dans le répertoire 
-                         Trello_swarm/ros2_ws/src/swarm/swarm/.
-Dans les variables correspondantes ,on configure les paramétres suivant :
-Self_ip : on entre l’adresse IP  de notre PC de controle sur le réseau aux drones et a OptiTrack.
-Listening_port : choisire un port de communication avec les drones Tello (par exemple entre 8890 et 8899, mais tout port disponible sur notre PC fonctionne).
-Verification des valeurs :
-On s’assure que les valeurs sont correctes, car un échec du socket au lancement du programme peut etre du a des parametres incorrects.
+Bien penser à sourcer ROS2 dans chaque terminal utilisé : 
 
-En résumer Le fichier Table.csv doit être correctement configuré avec les adresses IP des drones. De plus, l'adresse IP du PC sur le réseau commun aux drones et à Optitrack doit être entrée dans le programme driver_swarm.py .
+```bash
+source /opt/ros/foxy/setup.bash
+```
 
-Configuration de la démo exécutée par les drones :
-Fichier CSV de démo (csv_demo_test.csv) :
-Chaque ligne de ce fichier correspond à une position que le drone doit atteindre pendant un intervalle de temps défini entre starttime et endtime.
-Les positions sont spécifiées en coordonnées x, y et z, conformément aux axes définis dans Motive (le logiciel OptiTrack).
-Si le champ Quaternions est défini comme True, l’orientation du drone sera déterminée par les champs qx, qy, qz et qw.
-Si le champ Quaternions est défini comme False, l’orientation du drone sera déterminée par les angles d’Euler spécifiés dans les champs rx, ry et rz.
-Actuellement, seule l’orientation autour de l’axe Z (rotation en radians) est prise en compte (champ rz).
-Le champ Vobjectif n’est pas encore utilisé, donc vous pouvez le laisser à 0 ou à toute autre valeur.
-Le champ drone indique à quel drone l’ordre s’applique. Commencez à partir de 1 et incrémentez d’un pour chaque nouveau drone. Le streaming ID correspondant sera ajouté dans le programme en fonction des drones disponibles.
-Ordre des commandes :
-Les commandes doivent être spécifiées dans l’ordre croissant des champs starttime.
-Exemple de génération de démo :
-Un exemple de programme permettant de générer une démo au format .csv où les drones tournent autour du centre avec des variables modifiables (nombre de drones, vitesse, rayon, fréquence d’échantillonnage) est disponible dans le fichier tornado_generator.py :
-                                 trello_swarm/ros2_ws/src/swarm/swarm/demo/tornado_generator.py
-D’autres exemples de démos sont également disponibles dans ce dossier.
-Modification des démos :
-Pour modifier les démos, collez simplement la nouvelle démo dans le fichier csv_demo_test.csv et adaptez manuellement le fichier JSON correspondant.
+Puis lancer le build.sh présent à la racine du ROS2 workspace :
 
-En résumé les drones exécutent une démo spécifiée dans un fichier CSV. Ce fichier doit être correctement configuré, en veillant à ce que le nombre de positions spécifiées corresponde au nombre de drones.Les drones vont suivre une démo entrée en CSV dans le fichier et dont le nombre de drone qui l’exécute est égale au nombreDeDrone entré dans le fichier JSON .Pour l’instant pour modifier les démo on vient simplement coller la démo dans le fichier
-                                  trello_swarm/ros2_ws/src/swarm/swarm/demo/csv_demo_test.csv
+```bash
+bash build.sh
+```
+
+ et laisser ce terminal tourner.
+
+Afin de vérifier qu’il fonctionne correctement vous pouvez, dans un nouveau terminal dans lequel ROS2 est sourcé, lancer la commande :
+
+```bash
+ros2 topic echo /mocap_rigid_bodies
+```
+
+et constater si il y a bien des position de rigid body envoyé. Sinon vérifier toute la configuration et relancer (peut planter si latence sur le réseau)
+
+Sur certain PC le programme plante à une fréquence de 10 minutes environs et lorsque des changement sur les rigid bodies sur Motive sont effectué. Il faut donc exécuter à nouveau le build.sh.
+
+### Configuration du driver / package swarm :
+
+S’assurer que la table d’adresse IP des drones est correcte dans le fichier :
+
+```bash
+trello_swarm/ros2_ws/src/swarm/swarm/config/Table.csv
+```
+
+Entrer l’adresse IP du PC sur réseau commun aux drone et Optitrack dans le programme driver_swarm.py ainsi que sont port de communication avec les Tello (nouveau utilisions entre 8890 et 8899 mais fonctionne avec n’importe quel port disponible sur le PC)
+
+```bash
+trello_swarm/ros2_ws/src/swarm/swarm/driver_swarm.py
+```
+
+Dans les variables correspondante :
+
+```python
+class TelloMasterNode (Node):
+    self_ip = '192.168.1.227' #Set your own IP address on the routeur used to connect the tellos
+    listening_port = 8894 #any available port works
+```
+
+Les valeurs sont mauvaise si le socket échoue au lancement du programme.
+
+### Configuration de la démo exécutée par les drones :
+
+Les drones vont suivre une démo entrée en CSV dans le fichier :
+
+```python
+trello_swarm/ros2_ws/src/swarm/swarm/demo/csv_demo_test.csv
+```
+
+Et dont le nombre de drone qui l’exécute est égale au **nombreDeDrone** entré dans le fichier JSON :
+
+```python
+trello_swarm/ros2_ws/src/swarm/swarm/demo/csv_demo_test.csv.json
+```
+
+Les position dans ce fichier n’importent pas réélement mais servent d’indication sur la démo et serons print avant sont exécution. De plus il faut qu’il y est un nombre égale ou supérieur de position que drones dans le JSON.
+
+Le csv_demo_test.csv fonctionne de la manière suivante :
+
+Chaque ligne correspond à une position que doit atteindre le drone, entre le temps indiqué en **starttime, endtime**.
+
+les position **x,y,z** correspondent aux axes mis en place Motive. 
+
+Si le champ Quaternions est **True**, alors l’orientation du drone prise sera dans les champs **qx, qy, qz, qw.**
+
+Si le champ Quaternions est **False**, alors l’orientation du drone sera donc les angles d’Euler entré en **rx,ry,rz**
+
+Pour l’instant pour l’instant l’orientation commandée est uniquement celle autour de **l’axe Z** donc **rz.**
+
+Le champ Vobjectif n’est pour l’instant pas utilisé, donc le laisser à 0 (ou n’importe quelle valeur).
+
+Le champ drone correspond au drone auquel l’ordre s’applique. Partir de 1 et incrémenter de 1 à chaque nouveau drone, le streaming ID correspondant sera ajouter dans le programme à partir des drones disponible.
+
+<aside>
+🛑 Les commandes doivent forcément être dans l’ordre : **les champs starttime doivent être dans l’ordre croissant.**
+
+</aside>
+
+---
+
+Un exemple de programme permettant de générer une démo .csv de drone qui tourne autour du centre avec des variables modifiable (nombre de drone, vitesse, rayon, fréquence d’échantillonnage) est disponible en :
+
+```python
+trello_swarm/ros2_ws/src/swarm/swarm/demo/tornado_generator.py 
+```
+
+et d’autres exemple de démo sont également disponible dans ce dossier. 
+
+Pour l’instant pour modifier les démo on vient simplement coller la démo dans le fichier 
+
+```python
+trello_swarm/ros2_ws/src/swarm/swarm/demo/csv_demo_test.csv
+```
+
 et adapter la la main le JSON.
 
-Compilation et exécution du package :
-pour compiler et exécuter le package swarm :
-Compilation du workspace ROS2 :  On ouvre un nouveau terminal et  on accéde à la racine de votre workspace ROS2 :
-                                   cd /trello_swarm/ros2_ws
-On compile l’ensemble du workspace avec la commande :
-                                   colcon build
-Sourcer le workspace :
-Dans chaque nouveau terminal, on s’assure de sourcer le workspace ROS2 :
-                                   . install/setup.bash
-Exécution du programme :
-Pour surveiller les positions des drones et de leurs références, on utilise le logiciel RVIZ2. Lancez-le dans un terminal où ROS2 est sourcé :
-                                     ros2 run rviz2 rviz
-Dans RVIZ2, on modifie le champ “Fixed Frame” en sélectionnant “world”.On ajoute l’observation des transformations (TF) en cliquant sur “Add” → “TF”.Si nous souhaitons simplement observer la démo dans RVIZ sans faire décoller les drones (mais les drones doivent être allumés sinon la démo ne se lancera pas), commentez la ligne suivante dans la classe TelloNode, fonction takeoff_land :
-                                    self.master.send_command("takeoff", self.ip, False)
-Pour exécuter le programme, utilisez la commande :
-ros2 run swarm swarm_command
-On vérifie que le bon nombre de drones est présent dans les logs affichant "Created ", i ,"tello nodes successfully”, où i correspond au nombre correct de drones.Une fois qu’on est  sûr que tout est configuré correctement (placement des drones, etc.), on entre la commande done dans le terminal, et la démo se lancera immédiatement.
+### Compilation et exécution du package :
 
-Conclusion sur la partie pratique :
-En résumé, ce projet offre une solution complète et robuste pour le contrôle de drones à partir d'un PC, en combinant les technologies ROS2 et Optitrack pour un fonctionnement précis et efficace.
+Aller dans un nouveau terminal à la racine du workspace ROS2 :
+
+```bash
+cd /trello_swarm/ros2_ws
+```
+
+puis build le workspace complet : 
+
+```bash
+colcon build
+```
+
+Et il faudra le sourcer dans chaque nouveau terminal :
+
+```bash
+. install/setup.bash
+```
+
+Il est maintenant possible d’exécuter le programme :
+
+Si vous souhaiter monitorer les positions des drones et de leur référence c’est possible avec le logiciel rviz2, à lancer dans un terminal sourcé ROS2, à lancer de la manière suivante : 
+
+```python
+ros2 run rviz2 rviz
+```
+
+puis changer le champ de la fixed frame à **world.**
+
+Ensuite ajouter l’observation des TF en faisant add → TF.
+
+Si vous souhaitez simplement observer la démo sur RVIZ, c’est possible de bloquer le décollage des drones (mais ceux-ci doivent être allumer sinon la démo ne se lancera pas) en commentant la ligne suivante :
+
+```python
+self.master.send_command("takeoff", self.ip, False) #Comment this line if you don't want the drone to take off ----------
+```
+
+présente dans la classe TelloNode, fonction takeoff_land.
+
+Pour exécuter le programme le lancer avec la commande :
+
+```bash
+ros2 run swarm swarm_command
+```
+
+Vérifier que le bon nombre de drone est présent dans les log **"Created ", i ,"tello nodes successfully”**  avec i == au bon nombre.
+
+Une fois que vous vous ètes assurer que tout était bon, placement de drone etc, alors vous pouvez entrer
+
+```bash
+done
+```
+
+Dans le terminal, et la démo se lancera immédiatement.
+
+🛑 Faire CTRL + C dans le terminal permet de couper le programme et d’ordonner au drone de se stopper et de se poser, malheureusement les drones sont capricieux et donc leur arrêt ne s’effectue pas toujours.   
+
+Nous n’avons pas accès à leur logiciel interne donc il n’est pas possible de corriger se côté imprévisible des drones, sauf peut être en comprenant pourquoi le problème intervient et ainsi adapter le driver_swarm.py.
+
+---
+
+Pour concevoir une nouvelle commande (asservissement) des drones, voir la doc présente dans ce dépôt : **Doc : Comment modifier la commande pour asservir un essaim de drone**
+
+Pour voir l’architecture du logiciel voir l’image architecture_logiciel.png
+
+<aside>
+🐞 Nous avons découvert un bug en fin de projet que nous n’avons pas encore eu le temps de résoudre, actuellement il est impossible de controller plus de 4 drones à la fois. En effet le calcul de la transformé de tello_abs_pos_ID à tello_ref_ID renvoie en permanence le même résultat pour un ou deux drone à la fois. Il ne sont plus asservi et maintienne leur commande initiale de manière infini. Le bug semble survenir dans avec l’utilisation de la transformé car les frames TF2 sont correctes sur RVIZ2 mais l’erreur calculé de correspond pas. De plus, la transformée n’échoue pas, elle renvoie toujours la même erreur.
+
+</aside>
+
+<aside>
+📥 Le package pour connecter lire les données Optitrack est https://github.com/tud-cor-sr/ros2-mocap_optitrack
+
+</aside>
+
+
